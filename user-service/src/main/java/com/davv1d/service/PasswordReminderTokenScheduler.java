@@ -14,7 +14,7 @@ public class PasswordReminderTokenScheduler {
     public static final String USER_ID = "userId";
     private static final String TRIGGER_GROUP = "token-triggers";
     private static final String JOB_DETAIL_GROUP = "token-jobs";
-    private static final long time = 60;
+    private static final long time = 10;
     private final Scheduler scheduler;
 
     public void startSchedule(PasswordReminderTokenGenerated event) {
@@ -50,10 +50,10 @@ public class PasswordReminderTokenScheduler {
                 .build();
     }
 
-    public void stopSchedule(String userId) {
-        TriggerKey triggerKey = new TriggerKey(userId, TRIGGER_GROUP);
+    public void deleteJob(String userId) {
+        JobKey jobKey = new JobKey(userId, JOB_DETAIL_GROUP);
         try {
-            scheduler.unscheduleJob(triggerKey);
+            scheduler.deleteJob(jobKey);
         } catch (SchedulerException e) {
             e.printStackTrace();
         }

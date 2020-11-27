@@ -41,6 +41,6 @@ public class DomainEventHandler {
     @EventListener
     public void handle(UserPasswordChanged event) {
         System.out.println("Catch user password changed event | userId = " + event.getUserId());
-        passwordReminderTokenScheduler.stopSchedule(event.getUserId());
+        passwordReminderTokenScheduler.deleteJob(event.getUserId());
     }
 }

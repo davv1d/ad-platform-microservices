@@ -12,4 +12,8 @@ import java.util.Optional;
 public interface UserRepository extends CrudRepository<User, String> {
     Optional<User> findByActivationToken_Token(String activationCode);
     Optional<User> findByEmail(String email);
+    boolean existsByEmail(String email);
+    boolean existsByName(String name);
+    @Override
+    User save(User s);
 }

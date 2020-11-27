@@ -13,7 +13,7 @@ public class UserMapper {
     public User mapToUser(UserDto userDto, UserRole role) {
         String userId = UUID.randomUUID().toString();
         String activationCode = "test123456";
-        return new User(userId, userDto.getEmail(), userDto.getPassword(), role, activationCode);
+        return new User(userId, userDto.getName(), userDto.getEmail(), userDto.getPassword(), role, activationCode);
     }
 
     public UserResponseDto mapToUserResponseDto(User user) {
@@ -27,6 +27,7 @@ public class UserMapper {
         }
         return new UserResponseDto(
                 user.getUserId(),
+                user.getName(),
                 user.getEmail(),
                 user.getRole(),
                 user.getStatus(),

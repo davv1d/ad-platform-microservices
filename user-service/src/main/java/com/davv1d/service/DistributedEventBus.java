@@ -1,6 +1,9 @@
 package com.davv1d.service;
 
-import com.davv1d.event.*;
+import com.davv1d.event.PasswordReminderTokenGenerated;
+import com.davv1d.event.UserActivated;
+import com.davv1d.event.UserCreated;
+import com.davv1d.event.UserDeactivated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.messaging.Message;

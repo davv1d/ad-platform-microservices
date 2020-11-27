@@ -1,50 +1,72 @@
 package com.davv1d.service;
 
+import com.davv1d.domain.PasswordChanger;
 import com.davv1d.domain.User;
 import com.davv1d.domain.UserRole;
 import com.davv1d.domain.dto.PasswordChangerDto;
 import com.davv1d.domain.dto.UserDto;
+import com.davv1d.mapper.PasswordChangerMapper;
 import com.davv1d.mapper.UserMapper;
 import com.davv1d.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
+import com.davv1d.validation.Result;
+import com.davv1d.validation.Validator;
 import org.springframework.stereotype.Service;
 
-
 @Service
-@RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordChangerMapper passwordChangerMapper;
+    private final Validator.Builder<User> creationValidator;
 
-    public User createUser(UserDto userDto) {
-        return userRepository.save(userMapper.mapToUser(userDto, UserRole.USER));
+    public UserService(UserRepository userRepository, UserMapper userMapper, PasswordChangerMapper passwordChangerMapper) {
+        this.userRepository = userRepository;
+        this.userMapper = userMapper;
+        this.passwordChangerMapper = passwordChangerMapper;
+        this.creationValidator = new Validator.Builder<User>()
+                .softCondition(u -> userRepository.existsByEmail(u.getEmail()), "Email exists in database")
+                .softCondition(u -> userRepository.existsByName(u.getName()), "Name exists in database")
+                .successAction(userRepository::save);
     }
 
-    public User createAdmin(UserDto userDto) {
-        return userRepository.save(userMapper.mapToUser(userDto, UserRole.ADMIN));
+    public Result<User> createUser(UserDto userDto) {
+        User user = userMapper.mapToUser(userDto, UserRole.USER);
+        return creationValidator
+                .value(user)
+                .build()
+                .getResult();
     }
 
-    public User activateUser(String activationCode) {
-        User user = userRepository.findByActivationToken_Token(activationCode).orElseThrow(() -> new IllegalStateException("Incorrect activation code"));
-        user.activate(activationCode);
-        return userRepository.save(user);
+    public Result<User> createAdmin(UserDto userDto) {
+        User user = userMapper.mapToUser(userDto, UserRole.ADMIN);
+        return creationValidator
+                .value(user)
+                .build()
+                .getResult();
     }
 
-    public User remindPassword(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new IllegalStateException("User does not exist"));
-        user.createPasswordRemindToken("test token 2");
-        return userRepository.save(user);
+    public Result<User> activateUser(String activationCode) {
+        return Result.of(() -> userRepository.findByActivationToken_Token(activationCode), "Not found code")
+                .flatMap(user -> user.activate(activationCode))
+                .map(userRepository::save);
     }
 
-    public User deactivateUser(String userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalStateException("User does not exist"));
-        user.deactivate();
-        return userRepository.save(user);
+    public Result<User> remindPassword(String email) {
+        return Result.of(() -> userRepository.findByEmail(email), "User not found")
+                .flatMap(user -> user.createPasswordRemindToken("test token 2"))
+                .map(userRepository::save);
     }
 
-    public User changePassword(PasswordChangerDto passwordChangerDto) {
-        User user = userRepository.findByEmail(passwordChangerDto.getEmail()).orElseThrow(() -> new IllegalStateException("User does not exist"));
-        user.changePassword(passwordChangerDto.getNewPassword(), passwordChangerDto.getToken());
-        return userRepository.save(user);
+    public Result<User> deactivateUser(String userId) {
+        return Result.of(() -> userRepository.findById(userId), "User not found")
+                .flatMap(User::deactivate)
+                .map(userRepository::save);
+    }
+
+    public Result<User> changePassword(PasswordChangerDto passwordChangerDto) {
+        PasswordChanger passwordChanger = passwordChangerMapper.mapToPasswordChanger(passwordChangerDto);
+        return Result.of(() -> userRepository.findByEmail(passwordChanger.getEmail()), "User not found")
+                .flatMap(user -> user.changePassword(passwordChanger.getNewPassword(), passwordChanger.getToken()))
+                .map(userRepository::save);
     }
 }

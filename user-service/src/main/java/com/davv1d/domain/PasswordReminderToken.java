@@ -9,7 +9,7 @@ import org.springframework.data.domain.AbstractAggregateRoot;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "PASSWORD_REMINDER_TOKEN")
+@Table(name = "PASSWORD_REMINDER_TOKENS")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class PasswordReminderToken extends AbstractAggregateRoot<PasswordReminderToken> {
@@ -21,6 +21,7 @@ public class PasswordReminderToken extends AbstractAggregateRoot<PasswordReminde
     @MapsId
     @JoinColumn(name = "USER_ID", nullable = false)
     private User user;
+    @Column(name = "TOKEN", length = 40, unique = true, nullable = false)
     private String token;
 
     public PasswordReminderToken(User user, String token) {

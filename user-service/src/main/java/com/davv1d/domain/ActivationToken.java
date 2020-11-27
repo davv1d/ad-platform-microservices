@@ -3,10 +3,11 @@ package com.davv1d.domain;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
 import javax.persistence.*;
 
 @Entity
-@Table(name = "ACTIVATION_TOKEN")
+@Table(name = "ACTIVATION_TOKENS")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class ActivationToken {
@@ -18,6 +19,7 @@ public class ActivationToken {
     @MapsId
     @JoinColumn(name = "USER_ID", nullable = false)
     private User user;
+    @Column(name = "TOKEN", length = 40, unique = true, nullable = false)
     private String token;
 
 
