@@ -6,7 +6,12 @@ import com.davv1d.mapper.UserMapper;
 import com.davv1d.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -54,5 +59,13 @@ public class UserController {
         return this.userService.changePassword(passwordChangerDto).effect(
                 user -> ResponseEntity.ok(userMapper.mapToUserResponseDto(user)),
                 errors -> ResponseEntity.badRequest().body(errors));
+    }
+
+    @RequestMapping(value = { "/user" }, produces = "application/json")
+    public Map<String, Object> user(OAuth2Authentication user) {
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("user", user.getUserAuthentication().getPrincipal());
+        userInfo.put("authorities", AuthorityUtils.authorityListToSet(user.getUserAuthentication().getAuthorities()));
+        return userInfo;
     }
 }
